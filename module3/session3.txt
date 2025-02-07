@@ -1,0 +1,153 @@
+1. CSV SerDe
+Với mặc định, khi hive đọc file csv, sẽ sử dụng LazySimpleSerDe 
+PARTITIONED là một đặc tính phân vùng theo bảng theo cột tùy chọn, tức là dữ liệu được lưu trữ trong các phân vùng khác nhau của bảng.
+Điều này giúp tăng tốc độ truy vấn khi lọc dữ liệu theo cột được phân vùng
+PARTITIONED không tồn tại trong dữ liệu chính, mà được lưu trữ trong các phân vùng khác nhau của bảng.
+Giả sử có một bảng sales với các phân vùng theo năm, thì ta sẽ được các phân vùng theo year:
+/user/hive/warehouse/sales/year=2023/
+/user/hive/warehouse/sales/year=2024/
+
+PARTITIONED BY (year STRING)
+ROW FORMAT DELIMITED
+    FIELDS TERMINATED BY ','
+    ESCAPED BY '\\'
+    LINES TERMINATED BY '\n'
+STORED AS TEXTFILE
+LOAD DATA LOCAL INPATH '/path/to/sales.csv' INTO TABLE sales PARTITION (year='2024');
+
+Các đặc tính trong CSV SerDe OpenCSVSerde:
+- Dòng đầu tiên trong tệp CSV được coi là tiêu đề cột.
+- Các cột được phân tách bằng dấu phẩy (,) được gọi bằng cách "separatorChar" = ",".
+- Các giá trị được bao quanh bởi dấu nháy đơn (') được gọi bằng cách "quoteChar" = "`".
+- Các ký tự đặc biệt được chuyển đổi bằng cách thêm ký tự escape trước đó (\) được gọi bằng cách "escapeChar" = "\\".
+- Dòng đầu tiên có thể được bỏ qua bằng cách thêm "skip.header.line.count" = "1" trong SERDEPROPERTIES.
+
+Cấu trúc khai báo CSV SERDE:
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
+WITH SERDEPROPERTIES (
+  "separatorChar" = ",", 
+  "quoteChar"     = "`",
+  "escapeChar"    = "\\"
+)
+Để bỏ qua dòng tiêu đề có thể dùng lệnh:
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
+WITH SERDEPROPERTIES (
+  "separatorChar" = ",",
+  "quoteChar"     = "`",
+  "escapeChar"    = "\\",
+  "skip.header.line.count" = "1"
+)
+
+CSV SerDe không nhận diện được dữ liệu null nếu cột đó được định nghĩa kiểu dữ liệu số.
+Giải pháp thay thế là định nghĩa cột đó là kiểu dữ liệu chuỗi và sử dụng biểu thức điều kiện để chuyển đổi giá trị null thành giá trị mong muốn.
+Đối với định dạng timestamp, mặc định sẽ được chỉ định theo dạng số UNIX tính bằng mili giây ví dụ như giá trị 1579059880000 sẽ chuyển thành 2020-01-15
+Đối với định dạng time, nhận dạng các giá trị ngày biểu thị số ngày đã trôi qua kể từ ngày 1 tháng 1 năm 1970 ví dụ như 18276 sẽ chuyển thành 2020-01-15
+Có thể sử dụng cấu hình "timestamp.formats" và "time.formats" để chỉ định các định dạng khác.
+khai báo trong SERDEPROPERTIES là : "timestamp.formats" = "yyyy-MM-dd HH:mm:ss", "time.formats" = "HH:mm:ss"
+
+2. JSON SerDe
+JSON SerDe là một SerDe cho phép đọc và ghi dữ liệu định dạng JSON.
+Hive JSON SerDe không cho phép các khóa trùng lặp trong map hoặc struct.
+Cấu trúc khai báo JSON SerDe:
+ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
+
+3. Parquet SerDe
+Parquet SerDe là một SerDe cho phép đọc và ghi dữ liệu định dạng Parquet.
+Parquet là một định dạng file nhị phân được thiết kế để lưu trữ dữ liệu lớn và được sử dụng rộng rãi trong các hệ thống big data.
+Cách tạo cho file Parquet
+ROW FORMAT SERDE  
+'org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe' 
+WITH SERDEPROPERTIES (  
+'parquet.ignore.statistics'='true')  
+STORED AS PARQUET TBLPROPERTIES ("parquet compression"="snappy");
+
+Xử lý với lỗi ignore parquet statistics
+Ta thay thế cách Hive đọc file parquet
+hoặc là tạo 1 bảng mới với cấu hình WITH SERDEPROPERTIES ('parquet.ignore.statistics'='true')
+hoặc là thay đổi cách đọc 1 bảng với câu lệnh ALTER TABLE table_name SET SERDEPROPERTIES ('parquet.ignore.statistics'='true');
+
+4. ORC SerDe
+ORC SerDe là một SerDe cho phép đọc và ghi dữ liệu định dạng ORC.
+ORC là một định dạng file nhị phân được thiết kế để lưu trữ dữ liệu lớn và được sử dụng rộng rãi trong các hệ thống big data.
+Cách tạo cho file ORC
+ROW FORMAT SERDE
+'org.apache.hadoop.hive.ql.io.orc.OrcSerde'
+STORED AS ORC TBLPROPERTIES ("orc.compress"="ZLIB");
+
+5. Static Partitioning
+Là một kỹ thuật được sử dụng để lưu trữ dữ liệu theo các phân vùng tĩnh.
+Để sử dụng ta cần tạo bảng với từ khóa PARTITIONED BY (tên_phân_vùng<định_dạng_dữ_liệu>,...)
+CREATE TABLE sales (
+    order_id INT,
+    product_name STRING,
+    amount DOUBLE
+)
+PARTITIONED BY (year INT, month INT)
+STORED AS PARQUET;
+
+Khi thực hiện chèn dữ liệu vào bảng, đồng thời sẽ chỉ định vị trí PARTITION
+INSERT INTO TABLE sales PARTITION (year=2024, month=10)
+VALUES (1, 'Laptop', 1200.00),
+       (2, 'Smartphone', 800.00);
+
+Thực hiện truy vấn
+SELECT * FROM sales WHERE year=2024 AND month=10;
+Dữ liệu sẽ trả về 5 cột order_id, product_name, amount, year, month
+
+6. Dynamic Partitioning
+Là một kỹ thuật được sử dụng để lưu trữ dữ liệu theo các phân vùng động.
+Đầu tiên bảng trong Hive ta cần khai báo với từ khóa PARTITIONED BY (tên_phân_vùng<định_dạng_dữ_liệu>,...)
+CREATE TABLE sales (
+    order_id INT,
+    product_name STRING,
+    amount DOUBLE
+)
+PARTITIONED BY (year INT, month INT)
+STORED AS PARQUET;
+
+Giả sử ta có 1 bảng dữ liệu tên transactions có định dạng sau :
+order_id, product_name, amount, year, month
+1, Laptop, 1200.00, 2024, 10
+2, Smartphone, 800.00, 2024, 10
+3, TV, 1500.00, 2024, 10
+4, Laptop, 1200.00, 2024, 9
+
+Khi đó, ta thực hiện chèn dữ liệu vào bảng sales :
+SET hive.exec.dynamic.partition=true;
+SET hive.exec.dynamic.partition.mode=nonstrict;
+INSERT INTO TABLE sales PARTITION (year, month)
+SELECT order_id, product_name, amount, year, month
+FROM transactions;
+Lúc này, Hive sẽ tự động tạo các phân vùng cho bảng sales theo năm và tháng trong bảng transactions trên HDFS
+
+7. Bucketing
+Là một kỹ thuật được sử dụng để chia dữ liệu thành các bucket theo một cột nhất định.
+Kỹ thuật này thường được dùng chung với partitioning để tăng tốc độ truy vấn và giảm thời gian xử lý dữ liệu.
+Đầu tiên bảng trong Hive ta cần khai báo với từ khóa CLUSTERED BY (tên_cột) INTO (số_bucket) BUCKETS
+CREATE TABLE sales (
+    order_id INT,
+    product_name STRING,
+    amount DOUBLE,
+    transactions_date DATE
+)
+PARTITIONED BY (year INT)
+CLUSTERED BY (product_name) INTO 4 BUCKETS
+STORED AS PARQUET;
+
+Lúc này cấu trúc dữ liệu được lưu như sau :
+user/hive/warehouse/sales/year=2024/bucket_00000
+user/hive/warehouse/sales/year=2024/bucket_00001
+user/hive/warehouse/sales/year=2024/bucket_00002
+user/hive/warehouse/sales/year=2024/bucket_00003
+
+8. Map-Side Join, Bucket-Map Join, Sorted Merge Join, Skew Join
+Map-Side Join là một kỹ thuật tối ưu hóa trong Hive.
+Cho phép kết hợp hai bảng trong giai đoạn map (bên trái) của quy trình MapReduce mà không cần phải đưa dữ liệu về giai đoạn reduce. 
+Điều này có thể giúp tiết kiệm thời gian và tài nguyên khi:
+- Một trong các bảng là nhỏ (thường được gọi là bảng "lookup").
+- Bảng nhỏ này được lưu trữ trong memory.
+
+
+
+
+

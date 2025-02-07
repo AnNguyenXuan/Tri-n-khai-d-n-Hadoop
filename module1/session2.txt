@@ -1,0 +1,77 @@
+1. Integrity Constraints with custom name
+Việc đặt tên tùy chỉnh cho các ràng buộc giúp ta dễ dàng quản lý và tham chiếu chúng khi cần chỉnh sửa hoặc xóa.
+Truy xuất dễ dàng: Nếu xảy ra lỗi liên quan đến ràng buộc, bạn sẽ dễ dàng xác định ràng buộc nào bị vi phạm dựa trên tên của nó.
+Tăng tính mô tả: Tên tùy chỉnh có thể giúp diễn giải rõ ràng ý nghĩa của ràng buộc.
+PK_: Cho khóa chính (PRIMARY KEY).
+FK_: Cho khóa ngoại (FOREIGN KEY).
+UQ_: Cho ràng buộc duy nhất (UNIQUE).
+CK_: Cho ràng buộc kiểm tra (CHECK).
+NN_: Cho ràng buộc không null (NOT NULL).
+CONSTRAINT CK_Age CHECK (Age >= 18 AND Age <= 65) -- Tạo ràng buộc Integrity Constraints có tên là CK_Age
+ALTER TABLE Employees DROP CONSTRAINT CK_Age -- Xóa ràng buộc Integrity Constraints
+
+2. Alter command
+Alter command được sử dụng để thay đổi cấu trúc của bảng, như thêm hoặc thay đổi cột. 
+Không thể dùng để thay đổi dữ liệu trong bảng.
+ALTER TABLE Employees 
+ADD phoneNumber VARCHAR(15);
+----------------------------------------
+ALTER TABLE Employees 
+ADD address VARCHAR(100),
+ADD email VARCHAR(50);
+----------------------------------------
+ALTER TABLE Employees 
+ALTER COLUMN phoneNumber VARCHAR(20);
+----------------------------------------
+ALTER TABLE Employees 
+ALTER COLUMN phoneNumber VARCHAR(20) NOT NULL;
+----------------------------------------
+ALTER TABLE Employees 
+DROP COLUMN address;
+----------------------------------------
+ALTER TABLE Employees 
+DROP COLUMN email;
+----------------------------------------
+ALTER TABLE Employees 
+ALTER COLUMN phoneNumber TYPE VARCHAR(20);
+----------------------------------------
+ALTER TABLE Employees 
+ALTER COLUMN phoneNumber TYPE VARCHAR(20) NOT NULL;
+----------------------------------------
+ALTER TABLE Employees 
+RENAME COLUMN email TO emailAddress;
+----------------------------------------
+ALTER TABLE Employees 
+ALTER COLUMN Age SET DEFAULT 18;
+----------------------------------------
+
+3.Update command
+UPDATE được sử dụng để cập nhật dữ liệu trong bảng. 
+Ta có thể cập nhật một hoặc nhiều cột của một hoặc nhiều hàng trong bảng, tùy thuộc vào điều kiện đặt ra.
+UPDATE Employees 
+SET phoneNumber = '0987654321'
+WHERE id = 1;
+----------------------------------------
+UPDATE Employees 
+SET phoneNumber = '0987654321', email = 'abc@gmail.com'
+WHERE id = 1;
+----------------------------------------
+UPDATE Employees 
+SET phoneNumber = '0987654321', email = 'abc@gmail.com'
+WHERE id = 1 OR id = 2;
+----------------------------------------
+UPDATE Employees 
+SET phoneNumber = '0987654321', email = 'abc@gmail.com'
+WHERE id BETWEEN 1 AND 2;
+
+4. Like operation
+LIKE là một toán tử trong SQL được sử dụng để tìm kiếm các mẫu (patterns) trong chuỗi văn bản. 
+Thường được sử dụng với cột có kiểu dữ liệu chuỗi, cho phép thực hiện các truy vấn dựa trên các mẫu ký tự.
+SELECT * FROM employees
+WHERE name LIKE 'A%'; //tìm kiếm những tên bắt đầu bằng chữ A
+SELECT * FROM employees
+WHERE name LIKE 'J___'; //tìm kiếm những tên có 4 ký tự bắt đầu bằng chữ J
+//_ đại diện cho 1 ký tự bất kỳ
+//% đại diện cho 0 hoặc nhiều ký tự bất kỳ
+
+

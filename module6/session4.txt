@@ -1,0 +1,37 @@
+#Tài liệu về spark-submit
+https://spark.apache.org/docs/latest/submitting-applications.html
+
+Khái niệm cơ bản của spark streaming
+1. Kiến trúc Micro-Batching
+Spark Streaming hoạt động dựa trên mô hình micro-batch, chia dữ liệu thời gian thực thành các lô nhỏ (thường là 1 giây nhưng có thể tùy chỉnh).
+Mỗi lô được xử lý qua engine của Spark, cho phép xử lý dòng dữ liệu một cách hiệu quả.
+
+2. DStreams (Discretized Streams)
+DStream là khái niệm chính trong Spark Streaming, đại diện cho một chuỗi liên tục các RDD (Resilient Distributed Datasets).
+Mỗi khoảng thời gian của DStream tạo thành một RDD, giúp chúng ta có thể thao tác tương tự như RDD trong Spark.
+
+3. Nguồn Dữ Liệu
+Spark Streaming hỗ trợ nhiều nguồn dữ liệu:
+Kafka: Phổ biến để lấy dòng sự kiện.
+Flume: Phù hợp để thu thập dữ liệu nhật ký.
+Socket Streaming: Dùng thử với TCP socket (cho dữ liệu ít).
+HDFS hoặc các hệ thống file: Đọc từ các thư mục có file mới.
+
+4. Xử Lý Window
+Spark Streaming cung cấp các phép xử lý trên các khoảng thời gian trượt (windowing)
+cho phép bạn tính toán trên một khoảng thời gian nhất định, như tính trung bình di động.
+
+5. Chuyển Đổi Có Trạng Thái (Stateful Transformations)
+Các phép chuyển đổi này duy trì và cập nhật trạng thái qua từng batch, như theo dõi số lượng theo thời gian.
+Hàm chính là updateStateByKey, cho phép tích lũy trạng thái tuỳ biến.
+
+6. Checkpointing
+Checkpointing giúp lưu thông tin của RDD vào bộ nhớ ổn định (như HDFS) để phục hồi khi xảy ra lỗi. 
+Điều này cần thiết khi bạn sử dụng các phép chuyển đổi có trạng thái.
+
+7. Khả Năng Chịu Lỗi
+Spark Streaming đảm bảo chịu lỗi nhờ sử dụng lineage của RDD.
+Nếu một nút gặp sự cố, Spark có thể tính toán lại dữ liệu bị mất dựa trên lineage.
+
+8. Các Phép Xuất Kết Quả
+Sau khi xử lý, bạn cần xác định cách xuất dữ liệu, ví dụ: saveAsTextFiles, foreachRDD, hoặc ghi vào cơ sở dữ liệu.

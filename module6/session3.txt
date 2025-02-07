@@ -1,0 +1,33 @@
+Spark SQL
+# Tạo một phiên làm việc với Spark
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder \
+    .appName("PySpark with Hive") \
+    .enableHiveSupport() \
+    .getOrCreate()
+
+# Tạo DataFrame mẫu
+data = [("John", 28), ("Alice", 30), ("Bob", 25)]
+columns = ["name", "age"]
+df = spark.createDataFrame(data, schema=columns)
+
+# Lưu DataFrame vào Hive
+df.write.mode("overwrite").saveAsTable("default.new_table")
+
+# Tạo bảng trống trong Hive
+spark.sql("""
+    CREATE TABLE IF NOT EXISTS default.new_table_sql (
+        name STRING,
+        age INT
+    )
+""")
+
+# Liệt kê các bảng trong cơ sở dữ liệu default
+spark.sql("SHOW TABLES IN default").show()
+
+# Truy vấn dữ liệu từ bảng vừa tạo
+spark.sql("SELECT * FROM default.new_table").show()
+
+
+

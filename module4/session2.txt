@@ -1,0 +1,94 @@
+1. Confluent Kafka setup
+- Tìm đường dẫn sau : https://www.confluent.io/installation/
+
+2. Topic creation
+- Khi khơi tạo topic, ta có các tham số sau : 
+create <name> : tên topic name
+partitions <numbers> : số lượng phân vùng
+replication-factor <numbers> : số lượng bản ghi
+- Với Kafka CLI : 
+kafka-topics --create --topic my-first-topic --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
+kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic ten_topic
+- Xem danh sách các topic bằng lệnh : 
+kafka-topics --bootstrap-server localhost:9092 --list
+
+3. Schema Registry
+- Schema Registry có thể được khởi tạo thông qua lệnh từ terminal, giao diện Control Center, và code bằng POST HTTP API
+- Giao tiếp http của cổng 8081:
+- Id của schema là duy nhất, tức nếu các subject_name có cùng cấu trúc thì sẽ có chung Id
+- Các schema của một subject_name có sự khác biệt về cấu trúc thì sẽ được update Id, hay là phiên bản
+/subjects : trả về tất cả subjects đã đăng ký
+/subjects/{subject_name}/versions : trả về danh sách các phiên bản của một subject_name
+/schemas : trả về tất cả schema hiện có trong Schema Registry
+/schemas/ids/{id} : trả về thông tin cụ thể của một Schema dựa trên id 
+curl -X GET http://localhost:8081/subjects
+curl -X GET http://localhost:8081/subjects/weather-value/versions/latest
+
+4. Key value message
+- Chạy Kafka Producer với tùy chọn key-value :
+kafka-console-producer \
+  --topic user \
+  --property "parse.key=true" \
+  --property "key.separator=:" \
+  --bootstrap-server localhost:9092
+
+- Sau đó, ta gửi dữ liệu dưới dạng key:value
+key1:value1
+key2:value2
+key3:value3
+
+- Kafka sẽ tự động phân chia các message vào các partitions khác nhau trong hệ thống
+- Các message có cùng key sẽ được gửi vào cùng một partition
+
+- Có thể xem tất cả message của một topic bằng lệnh:
+kafka-console-consumer \
+  --topic user \
+  --bootstrap-server localhost:9092 \
+  --from-beginning
+
+- Xem message với một partition cụ thể, trong đó offset là vị trí bắt đầu đọc message:
+kafka-console-consumer \
+  --topic <topic_name> \
+  --partition <partition_number> \
+  --offset <offset_value> \
+  --bootstrap-server localhost:9092 \
+  --from-beginning
+
+- Với chỉ định from-beginning, Kafka sẽ bắt đầu đọc từ đầu của partition
+kafka-console-consumer \
+  --topic user \
+  --partition 0 \
+  --bootstrap-server localhost:9092 \
+  --from-beginning
+
+- Nếu muốn đọc từ một offset cụ thể, có thể sử dụng lệnh:
+kafka-console-consumer \
+  --topic user \
+  --partition 0 \
+  --bootstrap-server localhost:9092 \
+  --offset <offset_value>
+
+5. Random and Constant key
+Random Key : message được gửi vào partition ngẫu nhiên, không có thứ tự đảm bảo giữa các message, nhưng message được phân phối đồng đều.
+Constant Key : message có cùng key sẽ được gửi vào cùng một partition, có thứ tự đảm bảo giữa các message, nhưng message không được phân phối đồng đều.
+
+6. Kafka producers serialization message
+Serialization là quá trình chuyển đổi một đối tượng hoặc cấu trúc dữ liệu thành một chuỗi byte (binary format) để có thể lưu trữ hoặc truyền tải qua mạng.
+Điều này cho phép các ứng dụng gửi và nhận dữ liệu dưới dạng nhị phân, giúp tiết kiệm băng thông và cải thiện hiệu suất.
+
+7. Kafka consumer de-serialization message
+De-serialization là quá trình chuyển đổi một chuỗi byte (binary format) thành một đối tượng hoặc cấu trúc dữ liệu có thể được sử dụng bởi ứng dụng.
+Điều này cho phép các ứng dụng nhận và xử lý dữ liệu dưới dạng nhị phân, giúp tiết kiệm băng thông và cải thiện hiệu suất.
+
+8. Consumer groups
+Consumer groups là một tập hợp các consumer cùng một lúc để xử lý các message từ một hoặc nhiều topic.
+Các consumer trong cùng một consumer group sẽ cùng chia sẻ và xử lý các message từ topic, giúp tăng hiệu suất và giảm thời gian xử lý.
+
+
+
+
+
+
+
+
+

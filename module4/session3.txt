@@ -1,0 +1,123 @@
+lệnh xem các gói connectors hiện có
+curl -s localhost:8083/connector-plugins|jq '.[].class'
+
+lệnh tải xuống các trình kết nối
+confluent-hub install confluentinc/<name>:latest
+confluent-hub install confluentinc/kafka-connect-hdfs:latest
+
+1. CSV SerDe
+"schema.generation.enabled": "true" : Trong kafka, dạng dữ liệu avro sẽ được thiết lập nếu có setup này
+Dạng dữ liệu avro không hỗ trợ dữ liệu có khoảng trắng, json thì có 
+Tải 1 connector lên 
+Tạo file cấu hình spooldir.json
+confluent local services connect connector load spooldir --config spooldir.json
+confluent local services connect connector unload CsvSpoolDir
+confluent local services connect connector load CsvSpoolDir
+confluent local services connect connector status CsvSpoolDir
+curl -s http://localhost:8083/connectors | jq .
+{
+  "name": "CsvSpoolDir",
+  "config": {
+    "tasks.max": "1",
+    "connector.class": "com.github.jcustenborder.kafka.connect.spooldir.SpoolDirCsvSourceConnector",
+    "input.path": "/home/nguyenxuanan/data",
+    "input.file.pattern": ".*\\.csv",
+    "error.path": "/home/nguyenxuanan/error",
+    "finished.path": "/home/nguyenxuanan/finished",
+    "halt.on.error": "false",
+    "topic": "spooldir",
+    "csv.first.row.as.header": "true",
+    "schema.generation.enabled": "true"
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter": "io.confluent.connect.avro.AvroConverter",
+    "value.converter.schema.registry.url": "http://localhost:8081"
+  }
+}
+
+Khi sử dụng put file cấu hình phải là 1 chuỗi phẳng {}, các chuỗi phức tạp sẽ lỗi
+curl -X PUT http://localhost:8083/connectors/CsvSpoolDir/config \
+-H "Content-Type: application/json" \
+-d @spooldir.json
+{
+  "tasks.max": "1",
+  "connector.class": "com.github.jcustenborder.kafka.connect.spooldir.SpoolDirCsvSourceConnector",
+  "input.path": "/path/to/data",
+  "input.file.pattern": ".*\\.csv",
+  "error.path": "/path/to/error",
+  "finished.path": "/path/to/finished",
+  "halt.on.error": "false",
+  "topic": "spooldir",
+  "csv.first.row.as.header": "true",
+  "schema.generation.enabled": "true"
+}
+
+kafka-avro-console-consumer \
+    --bootstrap-server localhost:9092 \
+    --property schema.registry.url=http://localhost:8081 \
+    --topic spooldir \
+    --from-beginning \
+    --max-messages 1
+
+http://192.168.217.25:8083/connector-plugins : Đường dẫn cung cấp các connect tiêu chuẩn tới kafka connect
+connector-plugins là danh sách các plugin connectors hiện có, cho phép Kafka Connect giao tiếp với các nguồn dữ liệu (source) hoặc hệ thống đích (sink).
+Mỗi plugin cung cấp các khả năng đặc biệt như:
+Đọc dữ liệu từ file, cơ sở dữ liệu, hoặc REST API (source connectors).
+Ghi dữ liệu vào hệ thống lưu trữ như Elasticsearch, PostgreSQL, hoặc HDFS (sink connectors)
+
+2. JSON SerDe
+Tạo file cấu hình lấy dữ liệu hiện tại
+confluent connect plugin install confluentinc/kafka-connect-http-source:latest
+confluent local services connect connector load  http --config http-source-config.json
+confluent local services connect connector unload HttpSourceConnector
+confluent local services connect connector load HttpSourceConnector
+confluent local services connect connector status HttpSourceConnector
+  {
+    "name": "HttpSourceConnector",
+    "config": {
+      "connector.class": "io.confluent.connect.http.HttpSourceConnector",
+      "topic.name.pattern": "weather",
+      "url": "https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/Hanoi/today?unitGroup=metric&include=days&key=KE9ZLEFKWNY9QHQP6BGJEKX87&contentType=json",
+      "tasks.max": "1",
+      "http.offset.mode": "SIMPLE_INCREMENTING",
+      "offset.flush.interval.ms": "60000",
+      "request.interval.ms"": "60000"
+      "http.initial.offset": "0",
+      "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+      "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+      "confluent.topic.bootstrap.servers": "localhost:9092",
+      "confluent.topic.replication.factor": "1"
+  }
+}
+
+kafka-console-consumer \
+    --bootstrap-server localhost:9092 \
+    --topic weather \
+    --from-beginning | jq '.'
+
+3. Parquet SerDe
+Định dạng Parquet thường được sử dụng trong các hệ thống dữ liệu lớn bigdata để giảm kích thước dữ liệu truyền tải và lưu trữ
+Tạo file cấu hình
+confluent connect plugin install confluentinc/kafka-connect-hdfs3:latest
+confluent local services connect connector load  hdfs --config hdfs-sink-config.json
+confluent local services connect connector unload HdfsSinkConnect
+confluent local services connect connector load HdfsSinkConnect
+confluent local services connect connector status HdfsSinkConnect
+{
+    "name": "HdfsSinkConnect",
+    "config": {
+        "connector.class": "io.confluent.connect.hdfs3.Hdfs3SinkConnector",
+        "tasks.max": "1",
+        "topics": "weather",
+        "hdfs.url": "hdfs://10.128.0.2:9000",
+        "flush.size": "3",
+        "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+        "value.converter": "io.confluent.connect.avro.AvroConverter",
+        "value.converter.schema.registry.url":"http://10.128.0.7:8081",
+        "confluent.topic.bootstrap.servers": "10.128.0.7:9092",
+        "confluent.topic.replication.factor": "1",
+        "format.class":"io.confluent.connect.hdfs3.parquet.ParquetFormat",
+        "partitioner.class":"io.confluent.connect.storage.partitioner.FieldPartitioner",
+        "partition.field.name":"datetime"  // Trường chứa giá trị ngày tháng
+    }
+}
+

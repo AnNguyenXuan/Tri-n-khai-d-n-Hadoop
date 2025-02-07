@@ -1,0 +1,46 @@
+1. MapReduce Architecture
+- MapReduce chia quá trình xử lý thành hai giai đoạn chính và một giai đoạn phụ:
+Giai đoạn Map: Xử lý dữ liệu đầu vào để tạo ra các cặp khóa-giá trị.
+Giai đoạn Shuffle and Sort: Các cặp khóa-giá trị từ các Mapper được tập hợp và sắp xếp theo khóa sau đó dữ liệu được chuyển đến Reducers tương ứng
+Giai đoạn Reduce: Tập hợp các cặp khóa-giá trị từ giai đoạn Map để tạo ra kết quả cuối cùng.
+- Các thành phần chính:
++ JobTracker chức năng:
+Quản lý và điều phối việc thực hiện các tác vụ MapReduce.
+Chia nhỏ công việc thành các task (tác vụ) và phân phối chúng cho các TaskTracker (nút xử lý).
+Giám sát tiến độ và xử lý các lỗi trong quá trình thực hiện.
++ TaskTracker chức năng:
+Thực hiện các tác vụ Map và Reduce được phân phối bởi JobTracker.
+Gửi thông tin về trạng thái và kết quả của tác vụ trở lại JobTracker.
+Quản lý tài nguyên và đảm bảo rằng các tác vụ chạy hiệu quả.
++ Input Format chức năng:
+Xác định cách thức đọc dữ liệu đầu vào.
+Phân tách dữ liệu thành các cặp khóa-giá trị để đưa vào giai đoạn Map.
++ Mapper chức năng:
+Nhận các cặp khóa-giá trị từ Input Format.
+Thực hiện các phép biến đổi dữ liệu và sinh ra các cặp khóa-giá trị mới.
+Shuffle and Sort chức năng:
+Tập hợp các cặp khóa-giá trị từ các Mapper theo khóa.
+Sắp xếp và phân phối dữ liệu đến các Reducer tương ứng.
++ Reducer chức năng:
+Nhận các cặp khóa-giá trị đã được sắp xếp và nhóm lại.
+Thực hiện các phép tính tổng hợp (như sum, average, count) để tạo ra kết quả cuối cùng.
++ Output Format chức năng:
+Xác định cách thức ghi dữ liệu đầu ra từ Reducer vào hệ thống lưu trữ.
+
+2. YARN Architecture:
+- Kiến trúc YARN bao gồm ba thành phần chính:
+ResourceManager: Quản lý tài nguyên trong cluster.
+NodeManager: Quản lý tài nguyên trên mỗi nút worker (worker node).
+ApplicationMaster: Quản lý việc thực thi của một ứng dụng cụ thể.
+- Quy trình hoạt động
++ Đăng ký ứng dụng:
+Khi một ứng dụng mới được khởi chạy, nó sẽ tạo một ApplicationMaster và đăng ký với ResourceManager.
++ Yêu cầu tài nguyên:
+ApplicationMaster gửi yêu cầu tài nguyên tới ResourceManager, chỉ định số lượng và loại tài nguyên cần thiết.
++ Phân phối tài nguyên:
+ResourceManager xem xét yêu cầu và phân phối tài nguyên từ các NodeManager phù hợp.
++ Thực thi tác vụ:
+NodeManager tạo các container cho các tác vụ của ứng dụng và thực thi chúng.
+ApplicationMaster theo dõi tiến độ của các tác vụ.
++ Kết thúc ứng dụng:
+Khi tất cả các tác vụ đã hoàn thành, ApplicationMaster gửi thông báo kết thúc về ResourceManager.

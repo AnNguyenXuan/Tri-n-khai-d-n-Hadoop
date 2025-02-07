@@ -1,0 +1,17 @@
+Truy cập mongoDB từ shell
+mongosh "mongodb+srv://mongoserver.arkro.mongodb.net/" --apiVersion 1 --username nguyenxuanan2506 --password 250603
+
+Có nhiều cách kết nối đến mongodb 
+- Thông qua MongoDB driver : Sử dụng các ngôn ngữ lập trình để thực hiện thao tác với dữ liệu
+- Thông qua MongoDB Compass : Phần mềm quản lý MongoDB
+- Thông qua MongoDB shell : Là công cụ dòng lệnh được sử dụng để giao tiếp trực tiếp với cơ sở dữ liệu
+- Ngoài ra còn rất nhiều các công cụ khác
+
+Các lệnh với MongoDB
+show dbs : xem các database hiện có
+use <name_db> : sử dụng database
+show collections : xem các collection
+db.<name_db>.find() : truy vấn tất cả dữ liệu trong collection <name_db>
+
+
+

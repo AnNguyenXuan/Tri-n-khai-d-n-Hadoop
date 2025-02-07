@@ -1,0 +1,68 @@
+1. Kafka cluster architecture
+- Kafka broker là một máy chủ Kafka. Mỗi broker là một máy chủ Kafka chạy độc lập.
+- Kafka cluster là một cấu trúc mà trong đó có nhiều broker, các broker này được kết nối với nhau để tạo thành một cluster.
+- Zookeeper là một dịch vụ quản lý tập trung được sử dụng bởi Kafka cluster để lưu trữ thông tin cấu hình và trạng thái của cluster.
+- Kafka producer là một ứng dụng hoặc một tiến trình gửi dữ liệu đến Kafka cluster.
+- Kafka consumer là một ứng dụng hoặc một tiến trình lấy dữ liệu từ Kafka cluster.
+- Kafka topic là một luồng dữ liệu được lưu trữ trong Kafka cluster.
+- Kafka partition là một phần của một topic, topic được chia thành nhiều partition được lưu trữ trên một hoặc nhiều broker trong cụm cluster.
+- Kafka offset là một chỉ số được sử dụng để xác định vị trí của một bản ghi trong một partition. Consumer sẽ sử dụng offset để lấy dữ liệu từ partition.
+Ngoài ra, Consumer còn lưu trữ offset trong Zookeeper để có thể lấy dữ liệu tiếp tục từ vị trí đã dừng lại. Tránh thất thoát dữ liệu.
+- Kafka partition replication là một quá trình sao lưu dữ liệu từ một partition được chọn làm leader đến một hoặc nhiều broker khác trong cluster.
+Các bản sao sẽ được gọi là follower. Dữ liệu từ leader sẽ tự động sao chép đến follower.
+
+2. Brokers
+- Là thành phần chính quản lý dữ liệu trong Kafka cluster. Broker là một máy chủ lưu trữ và xử lý dữ liệu Kafka.
+- Broker chịu trách nhiệm nhận và lưu trữ dữ liệu từ producer, và cung cấp dữ liệu cho consumer.
+- Broker cũng chịu trách nhiệm sao lưu dữ liệu từ partition leader sang follower.
+- Broker có thể được cấu hình để lưu trữ nhiều partition của cùng một topic, giúp phân tán dữ liệu và tăng độ tin cậy của Kafka cluster.
+- Broker cũng lưu trữ metadata của Kafka cluster, bao gồm thông tin về các topic, partition, và consumer group.
+
+3. Topics
+- Là một danh sách các message được lưu trữ trong Kafka cluster. Topic là một cách để chia sẻ dữ liệu giữa producer và consumer.
+- Mỗi thông điệp gửi đến Kafka phải được gắn với một topic.
+
+4. Partitions
+- Là một phần của topic, và được chia thành nhiều partition để lưu trữ dữ liệu. Partition giúp tăng độ mở rộng và xử lý song song.
+- Mỗi partition là một chuỗi tuần tự các bản ghi (record/message), và các bản ghi được lưu trữ theo thứ tự thời gian khi ghi vào Kafka.
+
+5. Producer và Consumer, Group Consumer
+- Producer là một tiến trình hoặc ứng dụng gửi dữ liệu (message) đến các topic trong Kafka cluster.
+- Producer có thể gửi dữ liệu đến một partition cụ thể hoặc được Kafka tự động phân bổ đến các partition khác nhau.
+- Consumer là một tiến trình hoặc ứng dụng nhận dữ liệu (message) từ các topic trong Kafka cluster.
+- Consumer có thể xử lý dữ liệu theo thời gian thực hoặc lưu trữ kết quả xử lý.
+- Group Consumer là một tập hợp các consumer cùng làm việc với nhau để xử lý dữ liệu từ một topic trong Kafka cluster.
+- Group Consumer giúp tăng hiệu suất xử lý dữ liệu và chia sẻ công việc giữa các consumer.
+- Khi có một Group Consumer, Kafka sẽ tự động phân bổ các partition của topic cho các consumer trong group, và mỗi consumer sẽ chỉ nhận được một phần của dữ liệu từ topic đó.
+Điều này làm tăng hiệu suất xử lý dữ liệu và giúp các consumer xử lý dữ liệu song song, đồng thời đảm bảo mỗi dữ liệu chỉ được xử lý một lần.
+- Khả năng cân bằng tải : Nếu một Consumer gặp sự cố, Kafka sẽ tự động chuyển các partition cho các Consumer khác trong Group để đảm bảo tính liên tục của dịch vụ.
+- Khả năng xử lý độc lập : Các Consumer trong Group có thể xử lý dữ liệu độc lập với nhau, không ảnh hưởng đến nhau.
+
+6. Offset management
+- Offset là một chỉ số được Kafka sử dụng để biết Consumer đã đọc đến đâu trong một partition.
+- Offset được lưu trữ trong Kafka cluster và được Consumer gửi lên Kafka khi Consumer đọc xong dữ liệu từ partition.
+
+7. Replicas
+- Replicas là một cơ chế để sao lưu dữ liệu trong Kafka cluster.
+- Khi một partition được tạo ra, Kafka sẽ tạo ra một hoặc nhiều replicas của partition đó.
+- Replicas được sao lưu trên các broker khác nhau trong Kafka cluster để đảm bảo tính bền vững và khả năng phục hồi của dữ liệu.
+- Trong một cluster Kafka, có thể có nhiều replicas cho một partition, và một trong số đó sẽ được chọn làm leader partition.
+Các replicas khác sẽ sao lưu dữ liệu từ leader partition và được gọi là follower partitions.
+- Khi một leader partition bị lỗi, Kafka sẽ tự động chuyển leader role cho một follower partition khác trong cluster.
+- Replicas được sử dụng để tăng độ tin cậy và khả năng phục hồi của Kafka cluster.
+
+8. Commits
+- Commits là một cơ chế để Consumer lưu lại vị trí thông điệp cuối cùng mà nó đã xử lý thành công.
+- Commits hoạt động dựa trên cơ chế offset. Khi Commits, consumer sẽ gửi vị trí offset của thông điệp cuối cùng mà nó đã xử lý thành công lên Kafka cluster.
+
+9. Sync và Async Commits
+- Trong Kafka, có hai loại commits là Commits tự động và Commits thủ công.
+- Tự động Commits : Kafka tự động Commits offset sau một khoảng thời gian cố định.
+Điều này thường được thiết lập thông qua cài đặt enable.auto.commit (thường bật mặc định).
+Dù vậy, nó có điểm yếu là có thể dẫn đến tình huống thông điệp được commit khi chưa hoàn thành.
+- Thủ công Commits : Kafka cho phép bạn tự động Commits offset sau khi bạn đã xử lý thành công một thông điệp.
+Để thực hiện Commits thủ công, bạn có thể sử dụng hàm commitSync() hoặc commitAsync() của Consumer.
+- commitSync() : Commits offset và chờ cho đến khi Kafka cluster trả về phản hồi.
+Điều này đảm bảo an toàn nhưng có thể chậm do phải chờ phản hồi từ server.
+- commitAsync() : Commits offset và không chờ phản hồi từ Kafka cluster.
+Đây là cách nhanh hơn nhưng có thể dẫn đến mất mát dữ liệu nếu Kafka cluster không thể commit offset.

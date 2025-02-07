@@ -1,0 +1,7 @@
+Spark Complete Architecture
+- Thực hiện chạy hàm main() tạo đối tượng SparkContext
+- SparkContext phụ trách quá trình điều phối và xử lý nhiệm vụ trên 1 cụm (cluster)
+- SparkContext kết nối với một trình quản lý cụm (clusters manager) như Yarn để phân phối nhiệm vụ đến các worker node
+- Các worker node xử lý nhiệm vụ và gửi về cho SparkContext
+- Trong worker node, việc xử lý sẽ được phân phối đến các executor, là các tác vụ độc lập
+- Executor được phân chia tài nguyên trong worker node (CPU, ram)

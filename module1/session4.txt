@@ -1,0 +1,11 @@
+1. Exists và Not Exists
+- Exists: có tồn tại
+- Not Exists: không tồn tại
+- Exists trả về true nếu có tồn tại bản ghi nào thỏa mãn điều kiện trong truy vấn con
+- Not Exists trả về true nếu không có tồn tại bản ghi nào thỏa mãn điều kiện không trong truy vấn con
+EXISTS và NOT EXISTS rất hữu ích khi muốn kiểm tra sự tồn tại của một điều kiện mà không cần trả về dữ liệu từ truy vấn con.
+SELECT * FROM de.product
+where exists (select 1 from de.table_de where de.table_de.userid = de.product.userid and de.table_de.userid = 3);
+- Điểm khác biệt của Exists so với In là Exists kiểm tra sự tồn tại của một bản ghi nào đó trong một truy vấn con, trong khi In kiểm tra sự tồn tại của một giá trị trong một tập hợp giá trị.
+
+2. Window functions

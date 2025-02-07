@@ -1,0 +1,115 @@
+1. IS NULL và IS NOT NULL
+NULL không phải là một giá trị mà là sự vắng mặt của giá trị.
+= hoặc != không thể so sánh được với NULL. 
+Phải sử dụng IS NULL hoặc IS NOT NULL để kiểm tra các giá trị NULL.
+Kết hợp với WHERE để lọc ra các bản ghi có giá trị NULL hoặc không NULL.
+
+2. GROUP BY và Having Clause
+GROUP BY được sử dụng để nhóm các bản ghi có cùng giá trị cột thành một nhóm.
+GROUP BY có thể được sử dụng cùng với các hàm tổng hợp như COUNT(), SUM(), AVG(), MAX(), MIN() để tính toán các giá trị cho mỗi nhóm.
+Having Clause được sử dụng để lọc các nhóm đã được tạo bởi GROUP BY.
+Cấu trúc cú pháp :
+SELECT column1, column2, aggregate_function(column3)
+FROM table_name
+WHERE condition
+GROUP BY column1, column2
+HAVING aggregate_function(column3) condition;
+
+3. ORDER BY
+ORDER BY được sử dụng để sắp xếp các bản ghi theo thứ tự tăng dần hoặc giảm dần.
+Trong đó ASC là tăng dần, DESC là giảm dần.
+Cấu trúc cú pháp :
+SELECT column1, column2, ...
+FROM table_name
+ORDER BY column1, column2, ... ASC|DESC;
+
+4. STRING_AGG và GROUP ROLLUP
+STRING_AGG() kết hợp các giá trị từ nhiều bản ghi trong một nhóm thành một chuỗi, với một dấu phân cách tùy ý.
+select userid, STRING_AGG(product,',') as user_product
+from de.product
+group by userid
+order by userid;
+GROUP ROLLUP là một hàm trong SQL Server, được sử dụng để tạo ra các nhóm dữ liệu theo nhiều cấp độ khác nhau. 
+Nó có thể được sử dụng để tạo ra các báo cáo tổng hợp và phân tích dữ liệu theo nhiều cấp độ khác nhau.
+select userid, product, sum(prices::int) as total 
+from de.product
+group by rollup (userid,product)
+order by userid;
+
+5. Sub queries, in và not in
+Sub queries là các truy vấn con được sử dụng trong các truy vấn khác.
+IN và NOT IN là các toán tử được sử dụng để kiểm tra xem một giá trị có nằm trong một tập hợp giá trị hay không.
+Cấu trúc cú pháp :
+SELECT column1, column2, ...
+FROM table_name
+WHERE column_name IN (SELECT column_name FROM table_name WHERE condition);
+SELECT column1, column2, ...
+FROM table_name
+WHERE column_name NOT IN (SELECT column_name FROM table_name WHERE condition);
+
+6. Case when
+Case when là một hàm điều kiện trong SQL Server, được sử dụng để thực hiện các điều kiện lồng nhau và trả về một giá trị tùy theo điều kiện được thỏa mãn.
+Có thể sử dụng CASE-WHEN trong SELECT, WHERE, ORDER BY, GROUP BY, và các phần khác của truy vấn SQL.
+Cấu trúc cú pháp :
+SELECT column_name,
+        CASE 
+           WHEN condition1 THEN result1
+           WHEN condition2 THEN result2
+           ...
+           ELSE result_default
+        END AS alias_name
+FROM table_name;
+SELECT 
+    userid, 
+    product, 
+    prices, 
+    CASE
+        WHEN prices::int > 1200 THEN 'HIGH'
+        WHEN prices::int BETWEEN 800 AND 1200 THEN 'NORMAL'
+        ELSE 'LOW'
+    END AS prices_category
+FROM de.product
+ORDER BY userid,prices::int DESC;
+SELECT 
+    userid, 
+    product, 
+    prices 
+FROM de.product
+where 
+    CASE
+        WHEN prices::int > 1200 THEN 'HIGH'
+        WHEN prices::int BETWEEN 800 AND 1200 THEN 'NORMAL'
+        ELSE 'LOW'
+    END = 'HIGH'
+ORDER BY userid,prices::int DESC;
+
+7. SQL Joins
+JOIN được sử dụng để kết hợp các hàng từ hai hoặc nhiều bảng dựa trên một điều kiện liên quan giữa chúng.
+Có ba loại JOIN cơ bản:
+INNER JOIN: Lấy các hàng có giá trị trùng khớp trong cả hai bảng.
+LEFT JOIN (LEFT OUTER JOIN): Lấy tất cả các hàng từ bảng bên trái và các hàng có giá trị trùng khớp từ bảng bên phải.
+RIGHT JOIN (RIGHT OUTER JOIN): Lấy tất cả các hàng từ bảng bên phải và các hàng có giá trị trùng khớp từ bảng bên trái.
+Cú pháp:
+SELECT column_name(s)
+FROM table1
+INNER JOIN table2
+ON table1.column_name = table2.column_name;
+
+8. Views
+View là một bảng ảo được tạo từ một hoặc nhiều bảng trong cơ sở dữ liệu. 
+Nó được sử dụng để truy xuất dữ liệu từ nhiều bảng một cách dễ dàng và hiệu quả.
+VIEW giúp lưu trữ câu truy vấn phức tạp và dễ dàng sử dụng nó như một bảng bình thường mà không phải viết lại câu truy vấn mỗi lần.
+VIEW đóng gói 1 truy vấn phức tạp thành 1 bảng đơn giản, dễ dàng truy xuất, có thể tái sử dụng.
+Tính trừu tượng hóa: VIEW giúp ẩn đi cấu trúc phức tạp của cơ sở dữ liệu và chỉ cung cấp những dữ liệu cần thiết cho ứng dụng. 
+Bảo mật: Bạn có thể dùng VIEW để giới hạn quyền truy cập của người dùng chỉ vào một tập hợp dữ liệu nhất định thay vì toàn bộ bảng. 
+VIEW giúp tách biệt những gì người dùng có thể xem mà không cần cấp quyền truy cập trực tiếp vào bảng gốc.
+Nhược điểm:
+Hiệu suất: VIEW không lưu trữ dữ liệu thực, mà chỉ lưu trữ câu truy vấn. 
+Mỗi lần bạn truy cập VIEW, truy vấn sẽ được thực thi lại, điều này có thể gây ảnh hưởng đến hiệu suất nếu truy vấn phức tạp hoặc dữ liệu lớn.
+Khó khăn trong việc tối ưu hóa: Việc tối ưu hóa truy vấn SQL có thể khó khăn hơn khi sử dụng VIEW vì VIEW là một lớp trung gian.
+Cú pháp:
+CREATE VIEW view_name AS
+SELECT column1, column2, ...
+FROM table_name
+WHERE condition;
+

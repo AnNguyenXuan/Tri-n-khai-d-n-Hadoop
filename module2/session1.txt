@@ -1,0 +1,48 @@
+1. Bigdata fundamentals
+- Bigdata có 5 tính chất: Volum (khối lượng), Velocity (tốc độ), Variety (đa dạng), Veracity (tính chính xác), Value (giá trị)
+- Nguồn dữ liệu lớn bao gồm dữ liệu có cấu trúc, dữ liệu không có cấu trúc, dữ liệu semi-structured
+- Dữ liệu có cấu trúc là dữ liệu được lưu trữ trong các bảng
+- Dữ liệu không có cấu trúc là dữ liệu lưu trữ dưới dạng văn bản, video, hình ảnh
+- Dữ liệu semi-structured là dữ liệu được lưu trữ dưới dạng XML, JSON
+
+2. History of hadoop
+- 2003: Google phát hành tài liệu "MapReduce: Simplified Data Processing on Large Clusters".
+Giới thiệu khái niệm MapReduce, một mô hình lập trình cho phép xử lý dữ liệu lớn phân tán trên nhiều máy chủ.
+- 2004: Google phát hành tài liệu về Google File System (GFS), một hệ thống tệp phân tán được thiết kế để lưu trữ và xử lý khối lượng lớn dữ liệu.
+- 2013: Hadoop 2.0 được phát hành, giới thiệu YARN (Yet Another Resource Negotiator), cho phép xử lý các ứng dụng khác nhau trên cùng một cluster, mở rộng khả năng của Hadoop.
+Hadoop 2.x cho phép chạy nhiều mô hình xử lý dữ liệu trên một hạ tầng Hadoop, không chỉ giới hạn ở MapReduce.
+
+3. Hadoop components
+- Hadoop Distributed File System (HDFS): HDFS là một hệ thống tệp phân tán được thiết kế để lưu trữ và xử lý khối lượng lớn dữ liệu.
+Khi 1 tệp tin di chuyển trên HDFS, nó được chia thành các khối (block) và được lưu trữ trên nhiều máy chủ. HDFS cung cấp tính nhất quán, tính bền vững và khả năng mở rộng.
+HDFS sử dụng kiến trúc master-slave, với một NameNode quản lý hệ thống file metadata và nhiều DataNode lưu trữ dữ liệu.
+NameNode định nghĩa các ánh xạ tệp tin và khối đến DataNode trong khi DataNode quản lý các khối dữ liệu và thông tin về chúng.
+- MapReduce: MapReduce là một mô hình xử lý dữ liệu phân tán và phân luồng được thiết kế để xử lý khối lượng lớn dữ liệu trên nhiều máy chủ.
+Map Phase: Dữ liệu đầu vào được chia thành các mảnh nhỏ và xử lý song song để tạo ra các cặp key-value.
+Reduce Phase: Các cặp key-value được nhóm lại và xử lý để tạo ra kết quả cuối cùng.
+- YARN (Yet Another Resource Negotiator): YARN là một thành phần của Hadoop 2.x, được thiết kế để quản lý tài nguyên và điều phối các ứng dụng trên một hạ tầng Hadoop.
+YARN cho phép chạy nhiều ứng dụng và framework khác nhau trên cùng một cluster
+
+4. HDFS Architecture
+- HDFS có kiến trúc khách hàng-máy chủ (client-server) và được chia thành hai loại thành phần chính:
+NameNode: Máy chủ quản lý metadata và điều phối.
+DataNode: Các máy chủ lưu trữ thực tế dữ liệu.
+- NameNode Chức năng:
+Quản lý metadata của HDFS, bao gồm thông tin về các tệp, thư mục, vị trí của các khối dữ liệu trên DataNode và các quyền truy cập.
+Xử lý các yêu cầu đọc và ghi từ client.
+Quản lý việc sao lưu dữ liệu (replication) giữa các DataNode.
+- DataNode Chức năng:
+Lưu trữ các khối dữ liệu thực tế trong HDFS.
+Đáp ứng các yêu cầu đọc và ghi từ client.
+Gửi thông tin về trạng thái và số lượng khối dữ liệu đến NameNode định kỳ.
+- HDFS Block: Dữ liệu trong HDFS được chia thành các khối (blocks), thường có kích thước mặc định là 128 MB hoặc 256 MB.
+Mỗi khối dữ liệu được lưu trữ trên nhiều DataNode để đảm bảo tính sẵn có và khả năng phục hồi.
+- Quy trình hoạt động
+Ghi dữ liệu:
+Client gửi yêu cầu ghi dữ liệu tới NameNode.
+NameNode trả về danh sách các DataNode để lưu trữ các khối dữ liệu.
+Client ghi dữ liệu vào các DataNode theo thứ tự mà NameNode chỉ định.
+Đọc dữ liệu:
+Client gửi yêu cầu đọc dữ liệu tới NameNode.
+NameNode cung cấp danh sách các DataNode chứa các khối dữ liệu tương ứng.
+Client thực hiện các yêu cầu đọc trực tiếp tới các DataNode để lấy dữ liệu.

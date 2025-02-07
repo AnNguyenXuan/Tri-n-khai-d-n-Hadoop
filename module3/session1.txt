@@ -1,0 +1,5 @@
+1. Hive complete architecture
+Hive là một hệ thống kho dữ liệu (data warehouse) được xây dựng trên Hadoop.
+Hive cho phép người dùng thực hiện truy vấn và quản lý dữ liệu lớn bằng cách sử dụng ngôn ngữ SQL-like gọi là HiveQL.
+Hive metastore là một cơ sở dữ liệu lưu trữ metadata của Hive, bao gồm thông tin về bảng, cột, schema, và các thông số khác.
+

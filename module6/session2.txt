@@ -1,0 +1,89 @@
+1. Memory management in Spark
+- Spark chia bộ nhớ thành 2 phân vùng 
++ Execution Memory : Dùng cho việc thực thi các task tính toán join, sort, vv. Bộ nhớ này được cấp phát động dựa theo nhu cầu task.
++ Storage Memory : Dùng để lưu trữ các dữ liệu trung gian như RDD cache, broadcast variables.
+Nếu không đủ bộ nhớ, Spark sẽ giải phóng bộ nhớ từ RDD cache, hoặc lưu trữ chúng trên đĩa
++ 2 thành phần này chia sẻ một không gian dùng chung, cho phép linh hoạt tùy theo nhu cầu sử dụng.
+- Static và Dynamic Allocation
++ Static sẽ phân bổ bộ nhớ cố định cho mỗi executor
++ Dynamic sẽ phân bổ bộ nhớ tự động theo số lượng executor và khối lượng công việc
+- Ngoài ra do Spark chạy trên nền JVM, nên bị ảnh hưởng bởi cơ chế Garbage Collector, việc cấu hình cho đúng sẽ làm giảm thiểu tràn bộ nhớ
+
+2. Spark Cluster Capacity Planning
+- Là quá trình xác định và phân bổ tài nguyên phù hợp (CPU, bộ nhớ, dung lượng lưu trữ) cho cụm Spark nhằm tối ưu hóa hiệu suất và chi phí.
+- Quy trình cơ bản để thiết lập kế hoạch cho cụm Spark worker node
++ Xác định yêu cầu tài nguyên (Size data, Type job(stream or batch), Run time)
++ Lựa chọn cấu hình phần cứng (để đủ cấu hình executor cho tài nguyên như CPU và RAM, mỗi executor cần ít nhât 1 core)
++ Xác định số lượng executor và core 
+(mỗi worker node nên có nhiều hơn 3 executor, mỗi executor thường có từ 2-5 core, tránh cấu hình quá nhiều core trên 1 executor)
++ Cấu hình thông số Spark (Định nghĩa số lượng executor, số lượng ram mỗi executor, số core, bộ nhớ)
+
+3. Spark Performance Tuning
+- Là quá trình tối ưu hóa cài đặt để cải thiện hiệu suất của các ứng dụng chạy trên Apache Spark
+- Tối ưu về bộ nhớ và dữ liệu : 
++ Caching/Persisting Data : Lưu trữ dữ liệu thường xuyên sử dụng vào Cache để giảm thời gian tính toán
++ Broadcast variables : Dùng để chia sẻ dữ liệu nhỏ giữa các executor, giúp giảm băng thông mạng
++ Partitioning : Tối ưu số lượng partition để cân bằng phân phối task giữa các executor, tránh tình trạng quá tải partitions
+- Tối ưu hóa Shuffing :
++ Là quá trình di chuyển dữ liệu giữa các nodes, thường xảy ra trong các phép toán như groupBy, join, reduceByKey, vv.
++ Giảm số lượng shuffle bằng cách sử dụng các phép toán có tính chất phân tán, ví dụ reduceByKey thay vì groupByKey
++ Tăng số lượng partition để cân bằng phân phối task giữa các executor
+- Tối ưu Code Tuning : 
++ Loại bỏ sớm các dữ liệu không cần thiết bằng cách filter sớm trong pipeline
++ Sử dụng các phép toán có tính chất phân tán để giảm số lượng shuffle
+
+4. Spark Application and Resource Optimization
+5. Failure scenarios in Spark
+6. Best practices of writing Spark application
+- Lập kế hoạch partition hợp lý
++ Chọn số lượng và kích thước partition phù hợp để tránh tình trạng quá tải một partition hoặc tạo ra quá nhiều task nhỏ.
++ Best Practice : Thường, Spark mặc định 200 partitions khi shuffling trong Spark SQL.
+Tối ưu spark.sql.shuffle.partitions theo khối lượng dữ liệu (ví dụ, 2–4 partitions cho mỗi core).
+- Sử dụng Caching và Persisting hợp lý
++ Lưu trữ RDD/DataFrame được sử dụng nhiều lần để tránh tái tính toán, giảm thời gian xử lý.
++ Best Practice : Chỉ cache dữ liệu cần thiết và chọn chế độ phù hợp (MEMORY_ONLY, DISK_ONLY, etc.). 
+Xóa cache khi không cần thiết bằng unpersist().
+- Tránh Shuffling khi có thể
++ Shuffling là quá trình tốn tài nguyên, làm chậm hệ thống.
++ Sử dụng phép toán phân phối dữ liệu hiệu quả như reduceByKey thay vì groupByKey.
++ Tránh join trên các tập dữ liệu lớn nếu có thể. Sử dụng broadcast join khi một trong các tập dữ liệu nhỏ.
++ Best Practice : Điều chỉnh các phép toán để giảm hoặc tối ưu hóa shuffling.
+
+- Broadcast Variables và Accumulators
++ Broadcast variables : Được sử dụng để chia sẻ dữ liệu nhỏ (như lookup tables) giữa các executors, tránh sao chép nhiều lần và giảm băng thông.
++ Accumulators : Sử dụng để thực hiện tổng hợp dữ liệu toàn cục (như đếm lỗi).
++ Best Practice : Dùng broadcast variables cho dữ liệu nhỏ cần thiết trên tất cả executors, hạn chế sử dụng accumulators vì Spark không đảm bảo chính xác tuyệt đối.
+
+- Tối ưu hóa bộ nhớ
++ Điều chỉnh các tham số bộ nhớ như spark.executor.memory, spark.driver.memory, và spark.memory.fraction để phân bổ hợp lý.
++ Best Practice : Sử dụng bộ nhớ vừa đủ cho mỗi executor, thường là 4–8 cores/executor và tránh dùng toàn bộ bộ nhớ hệ thống để tránh lỗi Out of Memory.
+
+- Sử dụng DataFrame/Dataset API thay vì RDD (dữ liệu phân tán trên các node)
++ DataFrame và Dataset được tối ưu hóa nhờ Catalyst Optimizer, trong khi RDD không được tối ưu hóa.
++ Best Practice : Sử dụng DataFrame/Dataset cho hiệu suất cao hơn, ngoại trừ khi làm việc với các phép toán phức tạp mà RDD hỗ trợ tốt hơn.
+
+- Giảm phụ thuộc vào UDFs (User Defined Functions)
++ Spark không thể tối ưu hóa UDFs như các phép toán tích hợp.
++ Best Practice : Hạn chế dùng UDF khi có thể; thay vào đó, sử dụng các hàm tích hợp sẵn như filter, select, và withColumn.
+
+- Filter và Select sớm trong pipeline xử lý dữ liệu
++ Lọc và chọn các cột cần thiết ở giai đoạn đầu để giảm lượng dữ liệu.
++ Best Practice : Sử dụng filter và select ngay sau khi đọc dữ liệu để giảm khối lượng cần xử lý.
+
+- Quản lý lỗi và làm sạch dữ liệu
++ Xử lý lỗi như null values hoặc dữ liệu không hợp lệ sớm trong pipeline.
++ Best Practice : Dùng các phép dropna, fillna, và xử lý dữ liệu không hợp lệ để tránh lỗi khi phân tích dữ liệu.
+
+- Logging và kiểm tra ứng dụng thường xuyên
++ Log chi tiết quá trình thực thi để dễ dàng kiểm tra và debug khi gặp lỗi.
++ Best Practice : Dùng log4j để ghi lại các thông tin quan trọng và cấu hình logging phù hợp để theo dõi.
+
+- Chọn khung thời gian thích hợp khi làm việc với Spark Streaming
++ Với Spark Streaming, chọn batch interval (khoảng thời gian mỗi batch) hợp lý để tối ưu tốc độ xử lý.
++ Best Practice : Cân nhắc thời gian xử lý mỗi batch và khối lượng dữ liệu, chọn interval ngắn nếu dữ liệu đến liên tục hoặc dài nếu dữ liệu không nhiều.
+
+- Kiểm tra trên tập dữ liệu nhỏ trước khi triển khai
++ Trước khi chạy ứng dụng trên tập dữ liệu lớn, kiểm tra trên tập dữ liệu nhỏ để phát hiện lỗi sớm.
+Best Practice : Dùng subset dữ liệu để kiểm thử các logic xử lý và điều chỉnh cấu hình Spark nếu cần.
+
+

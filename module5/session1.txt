@@ -1,0 +1,71 @@
+1. CAP Theorem
+- Định lý CAP là một nguyên lý quan trọng trong hệ thống phân tán
+- Nó cho biết trong một hệ thống phân tán, ba tính chất sau đây không thể tồn tại cùng một lúc:
+Consistency (Tính nhất quán): Tất cả các nút trong hệ thống phải trả về cùng một giá trị cho cùng một yêu cầu.
+Availability (Tính sẵn sàng): Hệ thống phải trả về một giá trị cho bất kỳ yêu cầu nào, ngay cả khi một hoặc nhiều nút trong hệ thống đang gặp sự cố.
+Partition tolerance (Khả năng chịu lỗi): Hệ thống vẫn hoạt động kể cả khi có lỗi gián đoạn mạng lưới giữa các node.
+
+2. MongoDB và MongoDB Atlas
+- MongoDB là một hệ quản trị cơ sở dữ liệu NoSQL
+Cài đặt thủ công trên các máy chủ máy ảo, quản lý thủ công
+- MongoDB Atlas là một dịch vụ đám mây của MongoDB
+Dễ dạng triển khai, quản lý tự động nhiều tác vụ
+
+3. Node trong kiến trúc MongoDB
+Trong MongoDB, node(nút) là một máy chủ hoặc một thành phần trong kiến trúc của hệ thống cơ sở dữ liệu.
+Có một số loại node trong MongoDB, mỗi loại đóng vai trò khác nhau trong việc quản lý và lưu trữ dữ liệu. 
+Dưới đây là các loại node chính:
+- Primary Node : 
+Là node chính trong một replica set. Đây là node mà tất cả các thao tác ghi (insert, update, delete) được thực hiện.
+Nó lưu trữ bản sao chính của dữ liệu.
+
+- Secondary Node
+Là các node sao lưu trong một replica set. Chúng lưu trữ bản sao của dữ liệu từ primary node và đồng bộ hóa thường xuyên.
+Nếu primary node gặp sự cố, một trong các secondary node có thể được thăng cấp thành primary để đảm bảo tính sẵn sàng của hệ thống.
+
+- Arbiter Node
+Là một node không lưu trữ dữ liệu nhưng tham gia vào quá trình bầu chọn để xác định node nào trở thành primary trong một replica set.
+Arbiter giúp duy trì tính khả dụng của hệ thống mà không tiêu tốn tài nguyên lưu trữ.
+
+- Shard Node
+Trong kiến trúc sharded, mỗi shard là một node hoặc một tập hợp các node chịu trách nhiệm lưu trữ một phần của tập dữ liệu.
+Điều này cho phép phân phối tải và cải thiện hiệu suất.
+
+- Config Server Node
+Là các node lưu trữ thông tin cấu hình cho hệ thống sharded.
+Config server chứa metadata cần thiết để định vị các shard và quản lý việc phân phối dữ liệu.
+
+4. Cluster
+Trong MongoDB, cluster (cụm) là một nhóm các node (máy chủ) hoạt động cùng nhau để lưu trữ và quản lý dữ liệu.
+Có hai loại cluster chính trong MongoDB: replica set và sharded cluster.
+
+- Replica Set
+Định nghĩa : Một replica set là một nhóm các node MongoDB mà một node được chỉ định làm primary và các node còn lại là secondary. 
+Chức năng :
+Tính sẵn sàng cao : Nếu primary node gặp sự cố, một trong các secondary node có thể được thăng cấp thành primary để đảm bảo tính sẵn sàng của dịch vụ.
+Sao lưu và khôi phục : Các secondary node giữ bản sao dữ liệu từ primary node, giúp bảo vệ dữ liệu và khôi phục nhanh chóng.
+Quy trình đồng bộ : Các node secondary sẽ tự động đồng bộ hóa với primary để đảm bảo rằng chúng luôn có dữ liệu mới nhất.
+
+- Sharded Cluster
+Định nghĩa : Một sharded cluster là một cấu trúc MongoDB cho phép phân phối dữ liệu trên nhiều node, mỗi node lưu trữ một phần của dữ liệu (shard).
+Chức năng :
+Mở rộng ngang : Sharding cho phép phân phối dữ liệu và tải truy cập trên nhiều máy chủ, giúp tăng khả năng mở rộng của hệ thống.
+Cân bằng tải : Dữ liệu được phân phối giữa các shard dựa trên khóa sharding, giúp cân bằng tải và cải thiện hiệu suất.
+Các thành phần :
+Shards : Mỗi shard là một replica set hoặc một node đơn lẻ chứa một phần của dữ liệu.
+Config Servers : Lưu trữ thông tin cấu hình cho cluster, như metadata về vị trí dữ liệu.
+Query Routers (mongos) : Đóng vai trò như giao diện giữa ứng dụng và sharded cluster, điều phối các truy vấn và chỉ định chúng đến các shard phù hợp.
+
+5. Data replication
+- Việc khởi tạo dữ liệu bản sao trên một node secondary node từ một primary node được gọi là Data replication
+- Khơi tạo với cấu hình Replica set 
+mongod --replSet "myReplicaSet" --port 27017 --dbpath /data/db
+- Khởi tạo mô phỏng Replica set bằng nhiều phiên bản trên cùng 1 máy
+mongod --replSet "myReplicaSet" --port 27017 --dbpath /data/db1 --fork --logpath /var/log/mongod1.log
+mongod --replSet "myReplicaSet" --port 27018 --dbpath /data/db2 --fork --logpath /var/log/mongod2.log
+mongod --replSet "myReplicaSet" --port 27019 --dbpath /data/db3 --fork --logpath /var/log/mongod3.log
+
+
+
+
+

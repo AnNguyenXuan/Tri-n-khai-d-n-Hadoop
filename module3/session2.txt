@@ -1,0 +1,75 @@
+1. Datatype in hive
+Các kiểu dữ liệu nguyên thủy : 
+tinyint : số nguyên có dấu 1 byte từ -128 đến 127
+smallint : số nguyên có dấu 2 byte từ -32,768 đến 32,767
+int : số nguyên có dấu 4 byte từ -2,147,483,648 đến 2,147,483,647
+bigint : số nguyên có dấu 8 byte từ -9,223,372,036,854,775,808 đến 9,223,372,036,854,775,807
+float : số thực 4 byte
+double : số thực 8 byte
+decimal : số thực có độ chính xác cao ví dụ decimal(10,2) là số có 10 chữ số và 2 chữ số thập phân
+string : chuỗi ký tự
+timestamp : thời gian vi dụ 2022-01-01 00:00:00
+date : ngày ví dụ như 2022-01-01
+binary : mảng byte dữ liệu nhị phân ví dụ như mã hóa
+
+Các kiểu dữ liệu phức hợp : 
+array<T> : Danh sách các phần tử cùng kiểu ví dụ array<int> là danh sách các số nguyên
+map<K,V> : Danh sách các cặp giá trị với key và value cùng kiểu ví dụ map<string,int> là danh sách các cặp giá trị với key là chuỗi và value là số nguyên
+struct<T1,T2,...> : Danh sách các thành phần cùng kiểu ví dụ struct<int,string> là danh sách các thành phần với thành phần đầu tiên là số nguyên và thành phần thứ hai là chuỗi
+
+2. Tạo database trong hive
+create database if not exists <name>;
+
+3. Tạo bảng trong hive
+create table if not exists <name> (id int, name string) row format delimited fields terminated by ',' stored as textfile; 
+
+4. Load data from local
+load data local inpath '/path/to/filelocal' into table <name>;
+
+5. Load data from hdfs
+hdfs dfs -put example.txt /user/hive/warehouse/
+load data inpath '/path/to/filehdfs' into table <name>;
+hdfs dfs -ls /user/hive/warehouse
+
+6. Internal table
+Là bảng nội bộ trong hive, được lưu ở thư mục mặc định /user/hive/warehouse/<name>.db/<name>.
+Hive hoàn toàn quản lý bảng dữ liệu này, bất cứ khi nào tạo 1 bảng trong hive, bảng đó sẽ được lưu trong thư mục mặc định này.
+Nếu xóa bảng, dữ liệu sẽ bị xóa vĩnh viễn khỏi HDFS.
+
+7. External table
+Là bảng ngoài trong hive, được lưu ở thư mục được chỉ định trong câu lệnh create table.
+create table if not exists <name> (id int, name string) row format delimited fields terminated by ',' stored as textfile location '/path/to/filehdfs';
+Đường dẫn được chỉ định thường là /user/hive/<path_folder>/<name>.db/<name>.
+Hive chỉ quản lý metadata của bảng này, nếu xóa bảng, chỉ có metadata của bảng đó bị xóa, dữ liệu vẫn còn ở thư mục được chỉ định.
+Nếu xóa dữ liệu, metadata của bảng đó vẫn còn, nhưng khi truy vấn sẽ không thấy dữ liệu.
+
+8. Array và Map Datatype
+dữ liệu được khai bảo kiểu array thường được lưu dưới dạng mảng, ví dụ: array<string>
+dữ liệu được khai báo kiểu map thường được lưu dưới dạng dictionary, ví dụ: map<string, int>
+giả sử 1 file dữ liệu như sau
+1,nguyenxuanan,day:25;month:06;year:2003,1;2;3;4
+2,nguyenxuananh,day:25;month:06;year:2003,1;2;3;4
+3,nguyenxuanthai,day:16;month:11;year:2005,3;4;5;6
+4,nguyenquanghai,day:22;month:12;year:2018,6;4;5;6
+
+bảng tương ứng sẽ là 
+create table brother3 (id int, name string, birthday map<string, string>, ma array<int>) row format delimited fields terminated by ',' collection items terminated by ';' map keys terminated by ':' stored as textfile;
+
+9. SerDe trong Hive
+SerDe là một thành phần của Hive, nó là một bộ chuyển đổi giữa các định dạng dữ liệu và các định dạng được lưu trữ trong Hive. 
+SerDe có thể được sử dụng để đọc và ghi dữ liệu từ các định dạng khác nhau, ví dụ như Avro, Parquet, ORC, JSON, CSV, và nhiều định dạng khác.
+Câu lệnh : row format SerDe <SerDe_name> stored as <file_format>
+
+10. Các dạng lưu trữ dữ liệu cho dữ liệu lớn
+Câu lệnh : stored as ORC
+Câu lệnh : stored as Parquet
+Câu lệnh : stored as Avro
+ORC : Dữ liệu được lưu trữ theo cột thay vì hàng, giúp tăng tốc độ truy vấn và giảm chi phí bộ nhớ.
+Dữ liệu trong mỗi cột được nén lại, lưu trữ dưới dạng dải, mỗi dải chứa dữ liệu từ 1 số hàng nhất định, mỗi dải cũng lưu trữ các thông tin metadata.
+ORC hỗ trợ chia nhỏ các tệp, cho phép các nút trong cụm có thể đọc đồng thời các phần khác nhau trong tệp.
+Parquet : Dữ liệu lưu trữ theo dạng cột
+Dữ liệu được tổ chức thành các row groups, và mỗi nhóm chứa nhiều dải với dữ liệu đc nén.
+Metadata lưu trữ tại đầu tệp, giúp tăng tốc độ truy cập
+Avro : Dữ liệu được lưu trữ dưới dạng hàng, là lựa chọn cho việc ghi đọc các dữ liệu cấu trúc phức tạp.
+Dữ liệu được lưu trữ theo dạng nhị phân, kèm theo schema được lưu trữ ở đầu tệp, cho phép xác định kiểu dữ liệu khi đọc.
+Hỗ trợ nhiều loại mã hóa khác nhau.
