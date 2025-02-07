@@ -1,0 +1,26 @@
+wget https://dlcdn.apache.org/spark/spark-3.4.4/spark-3.4.4-bin-hadoop3.tgz
+tar -xvzf spark-3.4.4-bin-hadoop3.tgz
+sudo mv spark-3.4.4-bin-hadoop3 /opt/spark
+
+export SPARK_HOME=/opt/spark
+export PATH=$SPARK_HOME/bin:$PATH
+source ~/.bashrc
+
+Trên master node cấu hình
+nano /opt/spark/conf/spark-env.sh
+export SPARK_MASTER_HOST='10.128.0.2'
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+
+Cấu hình địa chỉ cho các node worker
+/opt/spark/conf/workers
+
+$SPARK_HOME/sbin/start-master.sh
+$SPARK_HOME/sbin/start-slaves.sh
+
+Chạy thử một job spark
+$SPARK_HOME/bin/spark-submit --master spark://10.128.0.2:7077 --class org.apache.spark.examples.SparkPi $SPARK_HOME/examples/jars/spark-examples_2.12-3.4.4.jar 10
+
+Truy cập web quản lý
+http://ip:8080/
+
+

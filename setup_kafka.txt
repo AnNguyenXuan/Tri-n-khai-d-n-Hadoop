@@ -1,0 +1,52 @@
+sudo apt update && apt upgrade -y
+
+Đối với ubuntu 20.04
+sudo apt install openjdk-17-jdk -y
+update-alternatives --config java
+
+JAVA_HOME="/lib/jvm/java-17-openjdk-amd64"
+sudo nano /etc/environment
+source /etc/environment
+
+
+Cài đặt thủ công
+wget https://download.java.net/openjdk/jdk11/ri/openjdk-11+28_linux-x64_bin.tar.gz
+sudo tar -xvzf openjdk-11+28_linux-x64_bin.tar.gz -C /usr/local
+sudo mv /usr/local/jdk-11 /usr/local/java11
+echo 'export PATH=/usr/local/java11/bin:$PATH' | sudo tee -a /etc/profile
+source /etc/profile
+java -version
+
+curl -O https://packages.confluent.io/archive/7.7/confluent-7.7.1.tar.gz
+tar xzf confluent-7.7.1.tar.gz
+
+Chỉnh sửa đường dẫn file bashrc
+export JAVA_HOME=/lib/jvm/java-17-openjdk-amd64
+export PATH=$JAVA_HOME/bin:$PATH
+export CONFLUENT_HOME=/home/nguye_ax/confluent-7.7.1
+export PATH=$PATH:$CONFLUENT_HOME/bin
+source .bashrc
+
+Chạy lệnh để test
+confluent --help
+
+Chạy lệnh chế độ thử nghiệm, chỉ có mục đích kiểm tra khả năng hoạt động của các dịch vụ
+confluent local services start
+confluent local services stop
+
+Lệnh với confluent
+confluent local services status
+
+Lệnh chạy local services
+confluent local kafka start
+
+Các cổng mặc định của confluent : http://<ip_address>:port
+Zookeeper: 2181
+Kafka Broker: 9092
+Kafka Connect: 8083
+Schema Registry: 8081
+Kafka REST Proxy: 8082
+ksqlDB: 8088
+Confluent Control Center: 9021
+
+

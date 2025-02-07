@@ -1,0 +1,170 @@
+#cài đặt các phần mềm cần thiết trên các cụm máy cluster, nodes
+wget http://www.mirbsd.org/~tg/Debs/sources.txt/wtf-bookworm.sources
+sudo mv wtf-bookworm.sources /etc/apt/sources.list.d/
+sudo apt update
+sudo apt upgrade -y
+apt install openjdk-8-jdk -y
+
+#hướng dẫn thay đổi phiên bản mặc định java
+sudo update-alternatives --install /usr/bin/java java /usr/lib/jvm/java-8-openjdk-amd64/bin/java 1
+sudo update-alternatives --install /usr/bin/javac javac /usr/lib/jvm/java-8-openjdk-amd64/bin/javac 1
+sudo update-alternatives --config java
+java -version
+sudo apt install net-tools -y
+wget https://dlcdn.apache.org/hadoop/common/hadoop-3.4.0/hadoop-3.4.0.tar.gz
+tar -xzvf hadoop-3.4.0.tar.gz
+mv hadoop-3.4.0 /opt/
+
+#tìm kiếm tệp ẩn
+ls -a ~ 
+
+#cần cấu hình tệp .bashrc thường nằm ở thư mục home/user/ ta cần thêm vào các dòng sau ở cuối tệp
+export HADOOP_HOME=/opt/hadoop-3.4.0
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+export PATH=$PATH:$HADOOP_HOME/bin
+export PATH=$PATH:$HADOOP_HOME/sbin
+export HADOOP_MAPRED_HOME=$HADOOP_HOME
+export HADOOP_COMMON_HOME=$HADOOP_HOME
+export HADOOP_HDFS_HOME=$HADOOP_HOME
+export YARN_HOME=$HADOOP_HOME
+export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native
+export HADOOP_OPTS="-Djava.library.path=$HADOOP_HOME/lib"
+
+#sau đó thực thi lệnh để áp dụng thay đổi
+source .bashrc
+
+#kiểm tra lại
+hadoop version
+
+#xóa thư mục 
+rm -rf /opt/hadoop
+
+#xóa nội dung thư mục
+rm -rf /opt/*
+
+#cấu hình ssh
+#tạo khóa ssh trên master node
+#sử dụng user mặc định, hoặc tạo user mới tên hadoop sau đó chạy lệnh 
+ssh-keygen -t rsa
+#thêm khóa công khai
+cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+#đảm bảo quyền truy cập
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys
+#thêm khóa này vào tất cả các node đặt làm datanode 
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDzT3QYv7IByD9vcEq1SJ9XYH6cjk0W8FEhb5CQ9Y/1ODkvmVb4DCi7JFpLmNov9KzsvrR/Rw0RHQ2GnveD2FviKhEsJxNTveEDtp11eXEJgmWpzpMafixtu4U1u11vXtycsc8fovfZZqv+Xn4oDwxNAkgDNZa1ZbZAnI8EkOuAfEsyo883nvVjxA6k0bjgrU0sVWp9BPeL9h7C5SX0O29Zsr05JSg4TQPdPhhnns7306BecXebvPPSanqvUw1tQS5h5Fk0f5RZ/jO9UvQuXVnjVtHjU+qj02J2Pxx03f1SoS+o2UqOM1otYiMfnPo5q0/E93ts3PVffXoxQK/9D/6yECB6dT7gDjn2tez/fbXPiK5RSxavfLTCb03n3zfROD8k8VYyFj125Rkd/bQe0L1I1YXwDkLWC7r3ISL46YYv1nnkl4gF0QJVj3CU3CkXuOPWa22ptm0rEcFgLkYyCBIx2HKD1nkREYSXjqxlifvdF6ShRGVycKkyY+Sl4r4Hj0k= nguye_ax@lap1
+
+#cấu hình cụm apache hadoop
+#đảm bảo quyền sửa
+sudo chown -R nguye_ax:nguye_ax /opt/hadoop-3.4.0
+#tìm đến thư mục khởi tạo môi trường và thêm dòng
+nano opt/hadoop-3.4.0/etc/hadoop/hadoop-env.sh
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+
+#cấu hình cho tất cả máy trong cụm các thiết lập sau
+#cấu hình địa chỉ máy master cho tất cả các máy tại đường dẫn tệp nằm ở : hadoop-3.4.0/etc/hadoop/core-site.xml
+<configuration>
+  <property>
+    <name>fs.defaultFS</name>
+    <value>hdfs://10.128.0.2:9000</value>
+  </property>
+</configuration>
+
+#tạo tệp để lưu trữ namenode và data node
+mkdir -p /opt/hadoop-3.4.0/hdfs
+mkdir -p /opt/hadoop-3.4.0/hdfs/namenode
+mkdir -p /opt/hadoop-3.4.0/hdfs/datanode
+
+#Cấu hình hệ số sao chép và thư mục dữ liệu cho HDFS.
+#đường dẫn tệp nằm ở : hadoop-3.4.0/etc/hadoop/hdfs-site.xml
+<configuration>
+  <property>
+    <name>dfs.replication</name>
+    <value>2</value> #số lượng sao chép
+  </property>
+  <property>
+    <name>dfs.namenode.name.dir</name>
+    <value>/opt/hadoop-3.4.0/hdfs/namenode</value>
+  </property>
+  <property>
+    <name>dfs.datanode.data.dir</name>
+    <value>/opt/hadoop-3.4.0/hdfs/datanode</value>
+  </property>
+</configuration>
+
+#định tuyến namenode và datanode
+#tệp nằm ở : hadoop-3.4.0/etc/hadoop/workers
+#thêm vào địa chỉ của các máy datanode
+10.128.0.3
+10.128.0.4
+
+#định dạng namenode
+hadoop namenode -format
+
+#khởi chạy dịch vụ
+start-dfs.sh
+
+#lệnh xác minh trạng thái của dịch vụ
+hadoop dfsadmin -report
+jps
+
+#xóa datanode nếu đang chạy trên namenode
+$HADOOP_HOME/sbin/hadoop-daemon.sh stop datanode
+
+#sau đó cấu hình dịch vụ yarm 
+#cấu hình tệp mapred-site.xml
+#tệp nằm ở : hadoop-3.4.0/etc/hadoop/mapred-site.xml
+<configuration>
+  <property>
+    <name>mapreduce.framework.name</name>
+    <value>yarn</value>
+  </property>
+</configuration>
+
+#tệp nằm ở opt/hadoop-3.4.0/etc/hadoop/yarn-site.xml
+<configuration>
+    <!-- Địa chỉ của ResourceManager -->
+    <property>
+        <name>yarn.resourcemanager.hostname</name>
+        <value>10.128.0.2</value> <!-- Địa chỉ IP của ResourceManager -->
+    </property>
+
+    <!-- Dịch vụ phụ trợ để hỗ trợ MapReduce -->
+    <property>
+        <name>yarn.nodemanager.aux-services</name>
+        <value>mapreduce_shuffle</value>
+    </property>
+
+    <!-- Dung lượng bộ nhớ và vCPU tối đa -->
+    <property>
+        <name>yarn.nodemanager.resource.memory-mb</name>
+        <value>4096</value>
+    </property>
+    <property>
+        <name>yarn.nodemanager.resource.cpu-vcores</name>
+        <value>2</value>
+    </property>
+</configuration>
+
+#khởi tạo dịch vụ yarn
+start-yarn.sh
+
+#cấu hình vpc firewall rull để kết nối từ máy cá nhân hoặc máy bất cứ máy nào
+#truy cập vpc firewall rule, tạo rull tcp : port 9870 để mở cổng hadoop
+#tạo rull tcp : port 8088 để mở cổng yarn
+#tạo rull tcp : port 8042 để mở cổng hive
+#tạo rull tcp : port 8080 để mở cổng spark
+#truy cập dịch vụ bằng <externel_ip>:<port>
+
+
+
+
+
+
+
+
+
+
+
+
+

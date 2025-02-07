@@ -1,0 +1,11 @@
+#cơ sở dữ liệu postgres
+\du : xem danh sách user
+\l : xem danh sách database
+\c database_name : connect database
+\dt : xem danh sách table
+\di : xem danh sách index
+\d table_name : xem thông tin chi tiết của table
+\d+ table_name : xem thông tin chi tiết của table bao gồm các cột
+
+psql -u postgres psql : đăng nhập postgres quyền root
+psql -U nguye_ax hive_metastore : đăng nhập hive_metastore

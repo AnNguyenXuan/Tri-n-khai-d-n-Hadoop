@@ -1,0 +1,6 @@
+#lệnh xem quyền thư mục
+ls -ld <tên_thư_mục>
+
+#lệnh với nano
+ctrl + w : tìm kiếm theo từ khóa
+ctrl + _ : tìm kiếm theo số thứ tự

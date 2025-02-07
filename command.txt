@@ -1,0 +1,31 @@
+1. Liệt kê các tài khoản có thông tin đăng nhập được lưu trữ trên hệ thống cục bộ:
+gcloud auth list
+
+2. Liệt kê các thuộc tính trong cấu hình gcloud CLI đang hoạt động của bạn:
+gcloud config list
+
+3. Xem thông tin về cài đặt gcloud CLI của bạn và cấu hình hoạt động:
+gcloud info
+
+4. Xem thông tin hỗ trợ về gcloud CLI:
+gcloud help
+q để thoát
+
+5. Xem tài liệu trợ giúp về cách tạo phiên bản điện toán gcloud:
+gcloud help compute instances create
+
+6. Xem tất cả các lệnh có sẵn trong chủ đề gcloud:
+gcloud help topic
+
+7. Xem thông tin về lọc:
+gcloud topic filters
+
+8. Tìm hiểu thêm về cấu trúc lệnh gcloud:
+gcloud topic command-conventions
+
+9. Kết nối với 1 máy ảo được tạo ra bởi gcloud:
+gcloud compute ssh [INSTANCE_NAME] --project [PROJECT_NAME] --zone [ZONE_NAME]
+gcloud compute ssh lap1 --project myproject1-437212 --zone us-central1-a
+gcloud compute ssh worker1 --project myproject1-437212 --zone us-central1-c
+gcloud compute ssh worker2 --project myproject1-437212 --zone us-central1-c
+gcloud compute ssh confluent-services --project myproject1-437212 --zone us-central1-a
